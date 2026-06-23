@@ -1,0 +1,66 @@
+.contact-requests-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.contact-request-card {
+  border: 1px solid rgba(19, 34, 56, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 36px rgba(19, 34, 56, 0.06);
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.contact-request-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contact-request-card h3 {
+  margin: 0 0 4px;
+  color: #132238;
+}
+
+.contact-request-card p {
+  margin: 0;
+  color: #475569;
+}
+
+.contact-request-date {
+  font-size: 0.85rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.contact-request-subject {
+  color: #1f4aff;
+  font-weight: 700;
+}
+
+.contact-request-message {
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.contact-empty-state {
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
+  color: #64748b;
+  padding: 24px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .contact-request-top {
+    flex-direction: column;
+  }
+
+  .contact-request-date {
+    white-space: normal;
+  }
+}

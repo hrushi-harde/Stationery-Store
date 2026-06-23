@@ -1,0 +1,48 @@
+.order-success {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+}
+
+.success-card {
+  text-align: center;
+  background: #fff;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.success-card h1 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.order-id {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.success-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.success-actions a {
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: linear-gradient(to right, #2c83eb, #4bc0d9);
+  color: white;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .success-actions {
+    flex-direction: column;
+  }
+}

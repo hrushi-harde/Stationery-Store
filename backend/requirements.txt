@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+psycopg[binary]
+sqlalchemy
+pydantic-settings
+google-generativeai
+faiss-cpu
+python-dotenv
+python-jose[cryptography]
+python-multipart

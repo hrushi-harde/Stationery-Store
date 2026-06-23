@@ -1,0 +1,72 @@
+services:
+
+  # ── PostgreSQL database ────────────────────────────────────────────────────
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: stationery
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d stationery"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - stationery_net
+
+  # ── FastAPI backend ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # psycopg v3 requires the postgresql+psycopg:// driver prefix.
+      # Host is the service name "db" — resolved by Docker's internal DNS.
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/stationery
+      APP_ENV: production
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-your_key_here}
+      SECRET_KEY: ${SECRET_KEY:-your_secret_key}
+      ALGORITHM: HS256
+      SHOP_OWNER_EMAIL: ${SHOP_OWNER_EMAIL:-owner@gmail.com}
+      SHOP_OWNER_NAME: ${SHOP_OWNER_NAME:-owner}
+      SHOP_OWNER_PASSWORD: ${SHOP_OWNER_PASSWORD:-123456}
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - stationery_net
+
+  # ── React / Vite frontend (served by Nginx) ────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8000/api/v1
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - stationery_net
+
+volumes:
+  pgdata:
+  uploads_data:
+
+networks:
+  stationery_net:
+    driver: bridge

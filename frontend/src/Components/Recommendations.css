@@ -1,0 +1,17 @@
+.recommendations {
+  padding: 40px 20px;
+  background: #f9fafb;
+}
+
+.recommendations h2 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1f2937;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  justify-items: center;
+}

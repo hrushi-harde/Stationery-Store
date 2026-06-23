@@ -1,0 +1,38 @@
+.orders {
+  padding: 2rem 1.5rem 3rem;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+}
+
+.orders h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #1f2937;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 1.2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.order-total {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.empty {
+  text-align: center;
+  font-size: 1.1rem;
+}

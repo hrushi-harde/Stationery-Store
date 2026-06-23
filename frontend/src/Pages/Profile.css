@@ -1,0 +1,49 @@
+.profile {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+}
+
+.profile-card {
+  background: #fff;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  width: min(500px, 90vw);
+}
+
+.profile-card h1 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.profile-note {
+  margin-top: 1.5rem;
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  color: #475569;
+}
+
+.profile-link {
+  margin-top: 1rem;
+  display: inline-block;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: linear-gradient(to right, #2c83eb, #4bc0d9);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
