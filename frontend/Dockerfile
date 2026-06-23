@@ -15,7 +15,6 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 COPY . .
 RUN npm run build
-
 # ────────────────────────────────────────────────────────────────────────────
 # Stage 2 – serve the built files with Nginx
 # Nginx listens on port 80 inside the container;
