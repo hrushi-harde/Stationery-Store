@@ -116,13 +116,14 @@ jobs:
             # ── Write .env from GitHub Secrets ───────────────────────────────
             cat > .env << 'ENV_EOF'
             DATABASE_URL=DB_URL_PLACEHOLDER
-            APP_ENV=production
+            APP_ENV=development
             SECRET_KEY=SECRET_KEY_PLACEHOLDER
             ALGORITHM=HS256
             GEMINI_API_KEY=GEMINI_PLACEHOLDER
             SHOP_OWNER_EMAIL=OWNER_EMAIL_PLACEHOLDER
             SHOP_OWNER_NAME=OWNER_NAME_PLACEHOLDER
             SHOP_OWNER_PASSWORD=OWNER_PASSWORD_PLACEHOLDER
+            CORS_ORIGINS=CORS_PLACEHOLDER
             ENV_EOF
 
             sed -i "s|DB_URL_PLACEHOLDER|${{ secrets.DATABASE_URL }}|g" .env
@@ -131,6 +132,7 @@ jobs:
             sed -i "s|OWNER_EMAIL_PLACEHOLDER|${{ secrets.SHOP_OWNER_EMAIL }}|g" .env
             sed -i "s|OWNER_NAME_PLACEHOLDER|${{ secrets.SHOP_OWNER_NAME }}|g" .env
             sed -i "s|OWNER_PASSWORD_PLACEHOLDER|${{ secrets.SHOP_OWNER_PASSWORD }}|g" .env
+            sed -i "s|CORS_PLACEHOLDER|http://${{ secrets.EC2_HOST }}:5173|g" .env
 
             # ── Pull fresh images ─────────────────────────────────────────────
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin

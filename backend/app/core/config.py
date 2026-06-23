@@ -13,6 +13,9 @@ class Settings(BaseSettings):
 
     # Optional configs
     app_env: str = "development"
+    # Comma-separated list of allowed CORS origins.
+    # Default covers local dev. Override via CORS_ORIGINS env var in production.
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     gemini_api_key: str = "dummy_key"
     faiss_index_path: str = "./data/faiss.index"
     secret_key: str = "your_secret_key"
