@@ -84,7 +84,6 @@ def _greeting_reply() -> str:
         "or gift ideas. Try asking for a product type, category, or budget."
     )
 
-
 def _gemini_chat_response(message: str, context: str) -> str:
     genai.configure(api_key=settings.gemini_api_key)
     model = genai.GenerativeModel("gemini-1.5-flash")
