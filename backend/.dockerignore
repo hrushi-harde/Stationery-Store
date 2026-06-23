@@ -1,0 +1,55 @@
+# ── Secrets & environment files ───────────────────────────────────────────
+# .env is never baked into the image — it is injected at runtime via
+# docker compose env_file or GitHub Actions secrets.
+.env
+.env.*
+*.env
+
+# ── Python runtime artifacts ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environment ────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Uploaded files (persisted via Docker volume, not baked into image) ─────
+uploads/
+
+# ── Test & coverage artifacts ──────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ── Editor & OS artifacts ──────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.sw?
+
+# ── Git ────────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── CI/CD ──────────────────────────────────────────────────────────────────
+.github/
+
+# ── Docker files themselves (no need to copy into image) ───────────────────
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# ── Docs & scripts not needed at runtime ──────────────────────────────────
+README.md
+*.md
+run-backend.bat
+run-backend.ps1
+scripts/
