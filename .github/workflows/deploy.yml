@@ -1,9 +1,16 @@
 name: Build & Deploy to EC2
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers:
+#   - Every push to main (normal CI/CD)
+#   - Manual trigger via GitHub UI (use this after changing EC2_HOST secret)
+#     Go to: Actions → Build & Deploy to EC2 → Run workflow
+# ─────────────────────────────────────────────────────────────────────────────
 on:
   push:
     branches:
       - main
+  workflow_dispatch:   # ← allows manual re-run after EC2_HOST change
 
 env:
   BACKEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/stationery-backend
@@ -12,6 +19,13 @@ env:
 jobs:
   # ───────────────────────────────────────────────────────────────────────────
   # JOB 1 — Build both Docker images and push to Docker Hub
+  #
+  # EC2_HOST is the single source of truth:
+  #   • VITE_API_BASE_URL  →  baked into the frontend JS bundle at build time
+  #   • CORS_ORIGINS       →  written into EC2 .env at deploy time
+  #
+  # The frontend image is NEVER cached — it always rebuilds so the correct
+  # API URL is embedded even when only EC2_HOST changes.
   # ───────────────────────────────────────────────────────────────────────────
   build-and-push:
     name: Build & Push Docker Images
@@ -30,6 +44,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # ── Backend image ──────────────────────────────────────────────────────
+      # Backend source code is cached — only rebuilds when source changes.
       - name: Build & push backend image
         uses: docker/build-push-action@v5
         with:
@@ -39,9 +55,12 @@ jobs:
           tags: |
             ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
             ${{ env.BACKEND_IMAGE }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
 
+      # ── Frontend image ─────────────────────────────────────────────────────
+      # NEVER cached — always rebuilt so EC2_HOST is always fresh in the bundle.
+      # VITE_API_BASE_URL is derived entirely from EC2_HOST — no other source.
       - name: Build & push frontend image
         uses: docker/build-push-action@v5
         with:
@@ -53,12 +72,14 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:latest
           build-args: |
             VITE_API_BASE_URL=http://${{ secrets.EC2_HOST }}:8000/api/v1
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # No cache-from/cache-to here — fresh build every time
 
   # ───────────────────────────────────────────────────────────────────────────
   # JOB 2 — SSH into EC2, write compose + .env, pull images, restart stack
-  # No file copy needed — everything is written directly on the EC2 instance.
+  #
+  # All dynamic values are derived from EC2_HOST at this step:
+  #   • CORS_ORIGINS  →  http://<EC2_HOST>:5173
+  #   • Frontend image already has the correct API URL baked in from Job 1
   # ───────────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy to EC2
@@ -79,7 +100,8 @@ jobs:
             cd ~/stationery-store
 
             # ── Write docker-compose.yml ─────────────────────────────────────
-            # Uses pre-built images from Docker Hub — no build step on EC2.
+            # Uses pre-built images — no build step on EC2.
+            # Image tags pinned to the exact commit SHA for traceability.
             cat > docker-compose.yml << 'COMPOSE_EOF'
             services:
               backend:
@@ -109,11 +131,12 @@ jobs:
                 driver: bridge
             COMPOSE_EOF
 
-            # Replace image placeholders with the actual tagged images
             sed -i "s|BACKEND_IMAGE_PLACEHOLDER|${{ secrets.DOCKERHUB_USERNAME }}/stationery-backend:${{ github.sha }}|g" docker-compose.yml
             sed -i "s|FRONTEND_IMAGE_PLACEHOLDER|${{ secrets.DOCKERHUB_USERNAME }}/stationery-frontend:${{ github.sha }}|g" docker-compose.yml
 
             # ── Write .env from GitHub Secrets ───────────────────────────────
+            # CORS_ORIGINS is derived from EC2_HOST — no separate secret needed.
+            # EC2_HOST is the single source of truth for all network addresses.
             cat > .env << 'ENV_EOF'
             DATABASE_URL=DB_URL_PLACEHOLDER
             APP_ENV=development
@@ -123,7 +146,7 @@ jobs:
             SHOP_OWNER_EMAIL=OWNER_EMAIL_PLACEHOLDER
             SHOP_OWNER_NAME=OWNER_NAME_PLACEHOLDER
             SHOP_OWNER_PASSWORD=OWNER_PASSWORD_PLACEHOLDER
-            CORS_ORIGINS=CORS_PLACEHOLDER
+            CORS_ORIGINS=http://EC2_HOST_PLACEHOLDER:5173
             ENV_EOF
 
             sed -i "s|DB_URL_PLACEHOLDER|${{ secrets.DATABASE_URL }}|g" .env
@@ -132,15 +155,15 @@ jobs:
             sed -i "s|OWNER_EMAIL_PLACEHOLDER|${{ secrets.SHOP_OWNER_EMAIL }}|g" .env
             sed -i "s|OWNER_NAME_PLACEHOLDER|${{ secrets.SHOP_OWNER_NAME }}|g" .env
             sed -i "s|OWNER_PASSWORD_PLACEHOLDER|${{ secrets.SHOP_OWNER_PASSWORD }}|g" .env
-            sed -i "s|CORS_PLACEHOLDER|http://${{ secrets.EC2_HOST }}:5173|g" .env
+            sed -i "s|EC2_HOST_PLACEHOLDER|${{ secrets.EC2_HOST }}|g" .env
 
             # ── Pull fresh images ─────────────────────────────────────────────
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stationery-backend:${{ github.sha }}
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stationery-frontend:${{ github.sha }}
 
-            # ── Start the stack ───────────────────────────────────────────────
-            docker compose up -d --remove-orphans
+            # ── Force recreate containers so new .env and new images take effect
+            docker compose up -d --force-recreate --remove-orphans
 
             # ── Clean up old images ───────────────────────────────────────────
             docker image prune -f
